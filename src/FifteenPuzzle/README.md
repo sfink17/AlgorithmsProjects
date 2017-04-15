@@ -10,5 +10,5 @@ the best solution found so far.
   
 This project was completed in four days as part of the Princeton Algorithms
 project assignment series. All clients within this package were provided
-by Princeton under the GNU GPLv3 public licence. Implementation of SeamCarver
+by Princeton under the GNU GPLv3 public licence. Implementation of the
 API is entirely original.
