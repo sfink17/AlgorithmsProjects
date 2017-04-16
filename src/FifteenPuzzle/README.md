@@ -1,6 +1,6 @@
 # 15 Puzzle Solver
 
-This package includes several clients for testing and visualizing 15-solver solutions.
+This package includes several clients for testing and visualizing 15-puzzle solutions.
 The algorithm utilized is a bidirectional best-first search, with board priority
 determined by the Manhattan distance from each square to its target position.
 Search space tree pruning is aided by a BiMax heuristic, which cuts all branches
