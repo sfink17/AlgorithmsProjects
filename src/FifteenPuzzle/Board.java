@@ -19,11 +19,27 @@ public class Board {
         this.N = tiles.length;
         this.BIG_N = N*N;
     }
+
+    /**
+     *  Returns the current tile at the query spot.
+     */
+
     public int tileAt(int i, int j) {
         if (i < 0 || i >= N || j < 0 || j >=N) throw new IllegalArgumentException();
         return tiles[i][j];
     }
+
+    /**
+     *  Returns the current size of the board, in side length.
+     */
+
     public int size() { return N; }
+
+    /**
+     * Returns the number of out of place tiles. Never
+     * got around to implementing it, but it is much less
+     * informative than the manhattan distance.
+     */
 
     public int hamming() {
         int incorrect = 0;
@@ -34,6 +50,13 @@ public class Board {
         }
         return incorrect;
     }
+
+    /**
+     *  Returns the sum of the vertical and horizontal distance of all
+     *  tiles to their final place in the solution. Does not over estimate
+     *  distance in moves, as each tile must move at least the manhattan
+     *  distance to reach the destination.
+     */
 
     public int manhattan(){
         int totalDist = 0;
@@ -49,9 +72,22 @@ public class Board {
 
         return totalDist;
     }
+
+    /**
+     * Returns true if the board is the solution board.
+     * Calculates this via the simple Hamming distance method.
+     */
     public boolean isGoal(){
         return (hamming() == 0);
     }
+
+    /**
+     *  Uses a red black binary tree to find if the board is solvable.
+     *  The specialized RB implementation dynamically stores the number
+     *  of placed tiles greater than the current submission, and returns it
+     *  upon placement; by the last placement in the RB tree,
+     *  all inversions within the permutation of tiles in row major order are found.
+     */
 
     public boolean isSolvable(){
         RBTree boardTree = new RBTree();
@@ -67,6 +103,10 @@ public class Board {
         }
         return ((invSum + blankSpace) % 2 == 0);
     }
+
+    /**
+     * Equals check, comparing each place.
+     */
     public boolean equals(Object y){
         Board cmp;
         if (!(y instanceof Board) || (cmp = (Board) y).size() != N)
@@ -82,6 +122,11 @@ public class Board {
         return true;
     }
 
+    /**
+     * Hashes a board using its unique permutation, dividing after
+     * each row to avoid blowing up. Works reasonably well in
+     * practice.
+     */
     public int hashCode(){
         int h = hash;
         if (h != 0) return h;
@@ -94,6 +139,12 @@ public class Board {
         return hash = h;
     }
 
+    /**
+     * Gets neighbors by shifting tiles adjacent
+     * to the empty space.
+     *
+     * @return An iterable of neighbor boards.
+     */
     public Iterable<Board> neighbors(){
         ArrayList<Board> neighbors = new ArrayList<>();
         int blankRow = 0;
@@ -121,16 +172,24 @@ public class Board {
         return neighbors;
     }
 
+    // Simple swap method.
     private void swap(int[][] tiles, int r1, int c1, int r2, int c2){
         int c = tiles[r1][c1];
         tiles[r1][c1] = tiles[r2][c2];
         tiles[r2][c2] = c;
     }
 
+    // Checks if within range.
     private boolean isValid(int r, int c){
         return (r >= 0 && r < N && c >= 0 && c < N);
     }
 
+    /**
+     * Uses the Java8 StringJoiner class to build
+     * a string representation of the board.
+     *
+     * @return String representation of the board.
+     */
     public String toString(){
         StringJoiner row = new StringJoiner(" ", " ", " ");
         for (int i = 0; i < N; i++) {
@@ -145,10 +204,13 @@ public class Board {
         row.add("\n");
         return row.toString();
     }
+
+    // Converts to 1D coords for more concise storage.
     private int tileAt1D(int t){
         return tileAt(t / N, t % N);
     }
 
+    // Convenience class.
 
     private enum Direction {
         UP (-1, 0),
@@ -165,7 +227,9 @@ public class Board {
         }
     }
 
-    private static class RBTree { // Making my own because Java has no "rank" method.
+    // RB tree that returns rank after placing in tree.
+
+    private static class RBTree {
         private Node root;
         private RBTree() {}
         private static final boolean RED = true;
@@ -185,7 +249,7 @@ public class Board {
                 this.size = size;
             }
         }
-        /**
+        /*
          * RB 'put' operation, copied (mostly) from Java's implementation.
          * Calculates the 'anti-rank' (number of larger nodes) at each step.
          * Also does away with Princeton's reliance on recursive methods by replacing
@@ -222,7 +286,7 @@ public class Board {
             return larger;
         }
 
-        /**
+        /*
          * Balancing operations.
          *
          * These are lifted from Java's implementation, with a few exceptions.

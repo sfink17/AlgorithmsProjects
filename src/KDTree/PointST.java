@@ -23,6 +23,7 @@ public class PointST<Value> {
     public boolean contains(Point2D p)    { if (p == null) throw new NullPointerException(); return points.containsKey(p); }
     public Iterable<Point2D> points()     { return points.keySet(); }
 
+    // Java8 is kind of nifty.
     public Iterable<Point2D> range(RectHV rect) {
         return points.keySet().parallelStream().filter(rect::contains).collect(Collectors.toList());
     }

@@ -9,13 +9,14 @@ import java.awt.*;
  * Created by Simon on 4/7/2017.
  */
 
-    // This utilizes the expected implementation, for the most part.
-    // I tested several different implementations, and frankly, none of them
-    // held up as well as I wanted to. Bidirectional searches' overhead is too great,
-    // a common issue that is relevant for many of my ideas for this project. Ultimately,
-    // I used a quick four-quadrant heuristic to get upper bounds for each direction,
-    // taking the minimum of paths reached from local minima reached from quadrants spanning
-    // each end of the search area.
+    /* This utilizes the expected implementation, for the most part.
+       I tested several different implementations, and frankly, none of them
+       held up as well as I wanted to. Bidirectional search's overhead is too great,
+       a common issue that is relevant for many of my ideas for this project. Ultimately,
+       I used a quick four-quadrant heuristic to get upper bounds for each direction,
+       taking the minimum of paths reached from local minima reached from quadrants spanning
+       each end of the search area.
+     */
 
 public class SeamCarver {
 
@@ -247,7 +248,9 @@ public class SeamCarver {
         return seam;
     }
 
-    // Gets a vertical upper bound, for pruning.
+    // Gets a vertical upper bound, for pruning. Does so by getting the best
+    // of 8 paths taken by simply following the nearest neighbor starting from
+    // evenly distributed pixels at each end.
     private int getVUpperBound(){
         int[] quads = {width / 8, 3 * width / 8, 5 * width / 8, 7 * width / 8};
         int boundMin = INFINITY;

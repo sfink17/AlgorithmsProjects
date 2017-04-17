@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.PriorityQueue;
 
 /**
+ * Each instance of this class wraps a solution of the target 15-puzzle board.
+ *
  * Created by Simon on 3/31/2017.
  */
 
@@ -30,12 +32,19 @@ public class Solver {
     private int qMin;
     int dMin = INFINITY;
 
+    /**
+     * The constructor (and current driver) for the solver class. Initializes bidirectional
+     * search.
+     *
+     * @param initial The board to be solved.
+     */
     public Solver(Board initial) {
         p = new PriorityQueue<>(10, (Node o1, Node o2) -> getPriority(o1, FORWARDS) - getPriority(o2, FORWARDS));
         q = new PriorityQueue<>(10, (Node o1, Node o2) -> getPriority(o1, BACKWARDS) - getPriority(o2, BACKWARDS));
         N = initial.size();
         start = get1DTilePositions(initial);
 
+        // The starting nodes from both sides of the search space.
         Node current = new Node(initial, null, 0, null);
         Node reverse = new Node(finishedBoard(), null, 0, null);
         pMin = getPriority(current, FORWARDS);
@@ -53,6 +62,7 @@ public class Solver {
         HashMap<Board, Node> rClosed = qClosed;
         boolean switchSides = false;
 
+        // Loop handles search from both ends.
         while (p.size() > 0 && q.size() > 0) {
             if (switchSides) {
                 if (dir == FORWARDS) {
@@ -72,6 +82,7 @@ public class Solver {
                 switchSides = false;
             }
 
+            // Simple check to break the search if one end finds the other.
             current = pollHash(dir);
             if (getPriority(current, dir) == current.order){
                 solution = current;
@@ -79,6 +90,7 @@ public class Solver {
             }
             closed.put(current.board, current);
 
+            // Prunes opposite end of search space if some nodes are shared.
             if (dMin > 0) {
                 if (rClosed.containsKey(current.board)) {
                     for (Board b : current.board.neighbors()) {
@@ -90,6 +102,8 @@ public class Solver {
             getNeighborsAndCost(current, dir);
             int newF = getPriority(current, dir);
 
+            // This handles switching logic. Only switches if the min priority of the current
+            // tree has gone up, and the current search tree is larger than its counterpart.
             if (newF > min) {
                 min = newF;
                 if (dir == FORWARDS) {
@@ -103,6 +117,7 @@ public class Solver {
             }
 
         }
+        // Contains the solution in holder for solution() method.
         Node n = qSol;
         Node t;
         Node f = solution.prev;
@@ -117,8 +132,19 @@ public class Solver {
     }
 
 
+    /**
+     * Gets moves taken to solve.
+     *
+     * @return The number of moves taken to solve.
+     */
     public int moves() { return (qSol == null) ? solution.order : qSol.order; }
 
+    /**
+     * Gets solution from the final board, returning a stack with the
+     * first board on top.
+     *
+     * @return The solution, in move order.
+     */
     public Iterable<Board> solution(){
         Stack<Board> boards = new Stack<>();
         Node current = (qSol == null) ? solution : qSol;
@@ -129,6 +155,7 @@ public class Solver {
         return boards;
     }
 
+    // 2D to 1D conversion
     private int[] get1DTilePositions(Board b){
         int[] tiles = new int[N*N];
         for (int i = 0; i < N; i++){
@@ -139,6 +166,8 @@ public class Solver {
         return tiles;
     }
 
+    // Makes finished board for the starting point of the
+    // other end of the search.
     private Board finishedBoard() {
         int[][] f = new int[N][N];
         for (int i = 0; i < N; i++){
@@ -150,6 +179,9 @@ public class Solver {
         return new Board(f);
     }
 
+    // Handles board neighbor finding and tree pruning conditions.
+    // I put this here instead of in Board because I needed to be able
+    // to access search parameters while considering neighbors.
     private void getNeighborsAndCost(Node n, int dir){
         ArrayList<Node> neighbors = new ArrayList<>();
         Board b = n.board;
@@ -194,6 +226,8 @@ public class Solver {
                         }
                     }
                 }
+                // Handles cases where boards are refound after a smaller series
+                // of moves
                 else {
                     if (neighbor.order < t.order) {
                         t.priority -= t.order - neighbor.order;
@@ -207,6 +241,7 @@ public class Solver {
                     }
                 }
             }
+            // Prunes if new best is found.
         if (trimTree) trimTree();
     }
 
@@ -218,6 +253,8 @@ public class Solver {
         return (n.last == Direction.LEFT && d == Direction.RIGHT);
     }
 
+    // The heuristic used. Gets the max of either the priority or the minimum heuristic distance
+    // measured from the other side of the search space.
     private int biMax(Node n, int dir){
         int min = (dir == FORWARDS) ? qMin : pMin;
         return Math.max(getPriority(n, dir), min + (n.order - computeManhattan(n, ~dir & 1, false)));
@@ -233,6 +270,7 @@ public class Solver {
         return (r >= 0 && r < N && c >= 0 && c < N);
     }
 
+    // Uses hashing for constant in checks.
     private Node inTree(Node n, int dir){
 
         HashMap<Board, Node> closed = (dir == FORWARDS) ? pClosed : qClosed;
@@ -252,6 +290,7 @@ public class Solver {
         return null;
     }
 
+    // Trims boards that fail bimax check
     private void trimTree(){
         ArrayList<Node> removeP = new ArrayList<>();
         ArrayList<Node> removeQ = new ArrayList<>();
@@ -275,6 +314,8 @@ public class Solver {
     }
 
 
+    // Utilizes the fact that to find a new manhattan distance, only
+    // the previous one is needed, in addition to the tile moved.
     private void getQuickPriority(Node n, int row, int col, int d){
         Direction dir = n.last;
         int i = n.board.tileAt(row, col);
